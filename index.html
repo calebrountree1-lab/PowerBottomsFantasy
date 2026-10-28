@@ -186,7 +186,7 @@
         <thead><tr>
           <th data-field="rank" class="num">#</th>
           <th data-field="team">Team</th>
-          <th data-field="manager" class="pb-hide-sm">Manager</th>
+          <th data-field="manager">Manager</th>
           <th data-field="w" class="num">W</th>
           <th data-field="l" class="num">L</th>
           <th data-field="pf" class="num">PF</th>
@@ -392,7 +392,7 @@
       const tr = document.createElement('tr');
       PB.cell(tr, String(r.rank), 'num pb-dim');
       PB.cell(tr, r.team);
-      PB.cell(tr, r.manager, 'pb-hide-sm pb-dim');
+      PB.cell(tr, r.manager, 'pb-dim');
       PB.cell(tr, String(r.w), 'num');
       PB.cell(tr, String(r.l), 'num');
       PB.cell(tr, PB.f2(r.pf), 'num');
