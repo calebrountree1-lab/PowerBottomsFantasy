@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Bottom Fantasies</title>
+<style>
+  :root { color-scheme: light dark;
+    --font-anthropic-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-anthropic-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+    --color-fg: #1f1e1d; --color-fg-muted: #6b6a68; --color-bg: #faf9f5; --color-panel: #ffffff; --color-border-line: #e5e3dc;
+    --color-ok: #2f7d46; --color-bad: #b4372b; --color-warn: #a86b00;
+    --cds-chart-grid: #ecebe6; --cds-surface-popover: #ffffff; --cds-border: #dcdad3; --cds-text-secondary: #6b6a68;
+    --cds-shadow-popover: 0 4px 16px rgba(0,0,0,.12); --cds-radius: 8px;
+    --cds-font-size-caption: .8rem; --cds-font-size-body: .9rem; --cds-font-size-heading: 1.05rem; --cds-font-size-title: 1.9rem; --cds-font-weight-medium: 600;
+    --cds-gap-xs: .25rem; --cds-gap-sm: .5rem; --cds-gap-md: 1rem; --cds-gap-lg: 1.5rem; --cds-gap-xl: 2rem;
+    --cds-pad-xs: .35rem; --cds-pad-sm: .6rem; --cds-pad-md: 1rem; --cds-pad-lg: 1.25rem; --cds-dur-slow: .3s; }
+  @media (prefers-color-scheme: dark) { :root {
+    --color-fg: #ecebe6; --color-fg-muted: #a3a29d; --color-bg: #1c1b19; --color-panel: #262523; --color-border-line: #3a3936;
+    --color-ok: #5fb878; --color-bad: #e5675a; --cds-chart-grid: #34332f; --cds-surface-popover: #2c2b28; --cds-border: #45443f; --cds-text-secondary: #a3a29d; } }
+  html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); }
+  #dash-root { max-width: 1200px; margin: 0 auto; padding: clamp(16px, 4vw, 40px); }
+  .dash-skeleton { color: transparent !important; background: var(--cds-chart-grid); border-radius: 4px; }
+  .pb-updated { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+</style>
+<style>
+  .pb { font-family: var(--font-anthropic-sans); display: flex; flex-direction: column; gap: var(--cds-gap-xl); }
+  .pb-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0 0 var(--cds-gap-xs); }
+  .pb-head p { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); max-width: 60rem; }
+  .pb .pb-head b, .pb .pb-tile b { font-weight: 600; color: var(--color-fg); }
+  .pb-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-md); }
+  .pb-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .pb-tile .pb-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+  .pb-tile .pb-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: var(--cds-gap-xs) 0; font-variant-numeric: tabular-nums; }
+  .pb-tile .pb-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+  .pb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: var(--cds-gap-md); }
+  .pb-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+  .pb-card .pb-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); }
+  .pb-scroll { overflow-x: auto; }
+  .pb table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; }
+  .pb th { text-align: left; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .pb td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .pb tbody tr:last-child td { border-bottom: 0; }
+  .pb .num { text-align: right; }
+  .pb .pb-fav { font-weight: 600; }
+  .pb .pb-dim { color: var(--color-fg-muted); }
+  .pb .pb-heat { position: relative; min-height: 360px; }
+  .pb .pb-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+  .pb .pb-tip .k { color: var(--cds-text-secondary); }
+  .pb .pb-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: inherit; }
+  .pb .pb-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+  .pb [data-dash-source-state=empty] { color: transparent; }
+  .pb [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  .pb .pb-score { display: flex; align-items: center; gap: var(--cds-gap-sm); min-width: 9rem; }
+  .pb .pb-bar { flex: 1; height: 10px; background: var(--cds-chart-grid); border-radius: var(--cds-radius); overflow: hidden; }
+  .pb .pb-fill { display: block; height: 100%; border-radius: var(--cds-radius); }
+  .pb .pb-val { width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .pb .pb-tile .pb-name { font-size: var(--cds-font-size-heading); line-height: 1.25; }
+  @media (max-width: 640px) { .pb .pb-hide-sm { display: none; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+  // Minimal stand-in for the Claude dashboard runtime: loads data/*.json and runs the page's calcs and drawings.
+  (() => {
+    const DATASETS = ['standings', 'games', 'projections', 'live', 'schedule'];
+    const store = {}, calcs = {}, draws = [], cache = {};
+    for (const id of DATASETS) store[id] = { status: 'loading', data: [] };
+    const dark = matchMedia('(prefers-color-scheme: dark)');
+    const palette = () => (dark.matches
+      ? ['#6c9ef8', '#e2a04a', '#5fb878', '#c77dd8', '#e5675a', '#4cc2c4', '#d4c45a', '#9a9a9a']
+      : ['#3b6fd8', '#c27a1e', '#2f7d46', '#9a4fb0', '#b4372b', '#1f8f91', '#9a8b16', '#6b6a68']);
+    const data = (id) => {
+      if (store[id]) return store[id];
+      const c = calcs[id];
+      if (!c) return { status: 'missing', data: [] };
+      if (cache[id]) return cache[id];
+      const ins = c.inputs.map(data);
+      const bad = ins.find((r) => r.status !== 'ok');
+      if (bad) return { status: bad.status, data: [] };
+      try { cache[id] = { status: 'ok', data: c.fn(...ins.map((r) => r.data)) }; }
+      catch (e) { console.error(id, e); cache[id] = { status: 'error', data: [], message: String(e) }; }
+      return cache[id];
+    };
+    const run = () => {
+      window.dash.colors = palette();
+      for (const [name, fn] of draws) {
+        for (const el of document.querySelectorAll(`[data-draw="${name}"]`)) {
+          try { fn(el); } catch (e) { console.error(name, e); }
+        }
+      }
+    };
+    window.dash = {
+      colors: palette(),
+      data,
+      calc: (id, spec) => { calcs[id] = spec; },
+      draw: (name, fn) => { draws.push([name, fn]); },
+      onData: () => {}, params: () => ({}), setParams: () => {}, resetParams: () => {}, setLink: () => {}, refresh: () => {},
+    };
+    const start = async () => {
+      run();
+      await Promise.all(DATASETS.map(async (id) => {
+        try {
+          const r = await fetch(`data/${id}.json`, { cache: 'no-store' });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          store[id] = { status: 'ok', data: await r.json() };
+        } catch (e) { store[id] = { status: 'error', data: [], message: String(e) }; }
+      }));
+      for (const k in cache) delete cache[k];
+      run();
+      try {
+        const m = await fetch('data/meta.json', { cache: 'no-store' }).then((r) => r.json());
+        const el = document.getElementById('pb-updated');
+        if (el && m.updated) el.textContent = 'Last updated ' + new Date(m.updated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + ' · Data from Yahoo Fantasy';
+      } catch (e) {}
+      let t;
+      addEventListener('resize', () => { clearTimeout(t); t = setTimeout(run, 150); });
+      dark.addEventListener('change', run);
+    };
+    document.addEventListener('DOMContentLoaded', start);
+  })();
+</script>
+</head>
+<body>
+<div id="dash-root">
+
+
+<div class="pb">
+  <header class="pb-head" id="top">
+    <h1>Power Bottom Fantasies</h1>
+    <p><b data-draw="leader" data-source="standings" data-field="team" data-row="0">—</b> leads the league at <b data-draw="leader-w" data-source="standings" data-field="w" data-row="0">—</b>–<b data-draw="leader-l" data-source="standings" data-field="l" data-row="0">—</b> through week <b data-draw="thru" data-source="season" data-field="last_week" data-row="0">—</b>, and <b data-draw="pr-leader" data-source="rankings" data-field="team" data-row="0">—</b> tops the power rankings.</p>
+  </header>
+
+  <section class="pb-tiles" aria-label="Season highlights">
+    <div class="pb-card pb-tile" id="last-place">
+      <p class="pb-label">Most likely float goat</p>
+      <p class="pb-big pb-name" data-draw="lp-team" data-source="last_odds" data-field="team" data-row="0">—</p>
+      <p class="pb-sub"><span data-draw="lp-pct" data-source="last_odds" data-field="last_pct" data-row="0">—</span> chance to finish last, from 10,000 simulations of the rest of the regular season</p>
+    </div>
+    <div class="pb-card pb-tile">
+      <p class="pb-label">Season high score</p>
+      <p class="pb-big" data-draw="hi-pts" data-source="season" data-field="high_pts" data-row="0">—</p>
+      <p class="pb-sub"><span data-draw="hi-team" data-source="season" data-field="high_team" data-row="0">—</span>, week <span data-draw="hi-week" data-source="season" data-field="high_week" data-row="0">—</span></p>
+    </div>
+    <div class="pb-card pb-tile">
+      <p class="pb-label">Season low score</p>
+      <p class="pb-big" data-draw="lo-pts" data-source="season" data-field="low_pts" data-row="0">—</p>
+      <p class="pb-sub"><span data-draw="lo-team" data-source="season" data-field="low_team" data-row="0">—</span>, week <span data-draw="lo-week" data-source="season" data-field="low_week" data-row="0">—</span></p>
+    </div>
+    <div class="pb-card pb-tile">
+      <p class="pb-label">Biggest blowout</p>
+      <p class="pb-big" data-draw="bo-margin" data-source="season" data-field="blow_margin" data-row="0">—</p>
+      <p class="pb-sub"><span data-draw="bo-win" data-source="season" data-field="blow_winner" data-row="0">—</span> over <span data-draw="bo-lose" data-source="season" data-field="blow_loser" data-row="0">—</span>, week <span data-draw="bo-week" data-source="season" data-field="blow_week" data-row="0">—</span></p>
+    </div>
+    <div class="pb-card pb-tile">
+      <p class="pb-label">League average score</p>
+      <p class="pb-big" data-draw="avg" data-source="season" data-field="avg_pts" data-row="0">—</p>
+      <p class="pb-sub">Points per team per week</p>
+    </div>
+  </section>
+
+  <section class="pb-card" id="matchups">
+    <h2>Week <span data-draw="cur-week" data-source="current" data-field="week" data-row="0">—</span> matchups</h2>
+    <p class="pb-note">Live scores beside Yahoo's projected scores. Scores update Thursday and Monday nights and hourly on Sundays. Bold marks the team that's ahead, or the projected favorite before kickoff.</p>
+    <div class="pb-scroll">
+      <table data-source="current" data-row-key="team_a">
+        <thead><tr>
+          <th data-field="team_a">Team</th>
+          <th data-field="rec_a" class="num pb-hide-sm">Record</th>
+          <th data-field="proj_a" class="num">Projected</th>
+          <th data-field="score_a" class="num">Score</th>
+          <th data-field="score_b" class="num">Score</th>
+          <th data-field="proj_b" class="num">Projected</th>
+          <th data-field="rec_b" class="pb-hide-sm">Record</th>
+          <th data-field="team_b">Opponent</th>
+        </tr></thead>
+        <tbody data-draw="current-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pb-card" id="standings">
+    <h2>Standings</h2>
+    <p class="pb-note">Official Yahoo standings. Moves are adds and drops this season.</p>
+    <div class="pb-scroll">
+      <table data-source="standings" data-row-key="team">
+        <thead><tr>
+          <th data-field="rank" class="num">#</th>
+          <th data-field="team">Team</th>
+          <th data-field="manager" class="pb-hide-sm">Manager</th>
+          <th data-field="w" class="num">W</th>
+          <th data-field="l" class="num">L</th>
+          <th data-field="pf" class="num">PF</th>
+          <th data-field="pa" class="num">PA</th>
+          <th data-field="streak" class="pb-hide-sm">Streak</th>
+          <th data-field="moves" class="num pb-hide-sm">Moves</th>
+        </tr></thead>
+        <tbody data-draw="standings-body"></tbody>
+      </table>
+    </div>
+    </section>
+
+  <section class="pb-card" id="rankings">
+    <h2>Power rankings</h2>
+    <p class="pb-note">A 0–100 score blending four things, each scaled from the league's worst (0) to best (100): recent form, the average of the last three weeks (30%); win % (25%); Yahoo's projected scoring for the next three weeks (25%); and season scoring average (20%). The arrow compares last-three-weeks scoring with the season average.</p>
+    <div class="pb-scroll">
+      <table data-source="rankings" data-row-key="team">
+        <thead><tr>
+          <th data-field="rank" class="num">#</th>
+          <th data-field="team">Team</th>
+          <th data-field="score">Score</th>
+          <th data-field="record" class="num">Record</th>
+          <th data-field="recent" class="num">Last 3 avg</th>
+          <th data-field="trend" class="num pb-hide-sm">Trend</th>
+          <th data-field="next" class="num">Next 3 proj</th>
+          <th data-field="avg" class="num pb-hide-sm">Season avg</th>
+        </tr></thead>
+        <tbody data-draw="rankings-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pb-card" id="scores">
+    <h2>Scores by week</h2>
+    <p class="pb-note">Darker cells are bigger scores. Green marks each week's top score and red its lowest. Teams are in power-ranking order; hover a cell for the matchup.</p>
+    <div class="pb-heat" data-draw="heat" data-source="games rankings">  <p class="pb-updated" id="pb-updated"></p>
+</div>
+  </section>
+
+/div>
+
+<script>
+  // Shared helpers
+  window.PB = {
+    f2: d3.format('.2f'),
+    pct: d3.format('.0%'),
+    // Returns rows when ready; otherwise leaves the element in its waiting/failed state and returns null.
+    rows(el, id) {
+      const r = dash.data(id);
+      el.classList.toggle('dash-skeleton', r.status === 'loading' || r.status === 'missing');
+      if (r.status === 'ok') return Array.isArray(r.data) ? r.data : [r.data];
+      if (r.status === 'error' || r.status === 'connect' || r.status === 'declined') {
+        const box = document.createElement(el.tagName === 'TBODY' ? 'tr' : 'div');
+        if (el.tagName === 'TBODY') {
+          const td = document.createElement('td'); td.colSpan = 9; const f = document.createElement('div'); f.className = 'pb-fail'; f.textContent = 'Failed to load'; td.append(f); box.append(td);
+        } else { box.className = 'pb-fail'; box.textContent = 'Failed to load'; }
+        el.replaceChildren(box);
+      } else if (el.tagName === 'TBODY') el.replaceChildren(); else el.textContent = '—';
+      return null;
+    },
+    cell(tr, text, cls) { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.append(td); return td; },
+    word(name, id, pick) {
+      dash.draw(name, (el) => { const r = PB.rows(el, id); if (r) el.textContent = pick(r); });
+    }
+  };
+</script>
+
+<script>
+  // Derived numbers, all from the weekly scores
+  dash.calc('rankings', {
+    title: 'Power rankings',
+    description: 'Score 0–100: last-3-weeks average 30%, win % 25%, next-3-weeks projection 25%, season average 20%, each scaled worst to best.',
+    inputs: ['games', 'projections'],
+    fn: (games, projections) => {
+      const last = Math.max(...games.map((g) => g.week));
+      const nextWeeks = [...new Set(projections.map((p) => p.week))].filter((w) => w > last).sort((a, b) => a - b).slice(0, 3);
+      const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
+      const teams = [...new Set(games.map((g) => g.team))];
+      const out = teams.map((team) => {
+        const mine = games.filter((g) => g.team === team);
+        const wins = mine.filter((g) => g.result === 'W').length;
+        const recent = mean(mine.filter((g) => g.week > last - 3).map((g) => g.pts));
+        const avg = mean(mine.map((g) => g.pts));
+        const ahead = projections.filter((p) => p.team === team && nextWeeks.includes(p.week)).map((p) => p.proj);
+        return { team, record: wins + '-' + (mine.length - wins), win_pct: wins / mine.length, recent, avg, trend: recent - avg, next: ahead.length ? mean(ahead) : null };
+      });
+      const scale = (key) => {
+        const vals = out.map((r) => r[key]).filter((v) => v != null);
+        const lo = Math.min(...vals), hi = Math.max(...vals);
+        return (v) => (v == null || hi === lo ? 50 : ((v - lo) / (hi - lo)) * 100);
+      };
+      const sRecent = scale('recent'), sWin = scale('win_pct'), sNext = scale('next'), sAvg = scale('avg');
+      for (const r of out) r.score = 0.30 * sRecent(r.recent) + 0.25 * sWin(r.win_pct) + 0.25 * sNext(r.next) + 0.20 * sAvg(r.avg);
+      out.sort((a, b) => b.score - a.score);
+      out.forEach((r, i) => { r.rank = i + 1; });
+      return out;
+    }
+  });
+
+  dash.calc('current', {
+    title: 'This week\'s matchups',
+    description: 'The current week\'s games, one row per matchup, with each team\'s record, live score and Yahoo projection.',
+    inputs: ['projections', 'standings', 'live'],
+    fn: (projections, standings, live) => {
+      const week = Math.min(...projections.map((p) => p.week));
+      const rec = Object.fromEntries(standings.map((r) => [r.team, r.w + '-' + r.l]));
+      const pts = Object.fromEntries(live.filter((r) => r.week === week).map((r) => [r.team, r.pts]));
+      const seen = new Set();
+      const out = [];
+      for (const p of projections.filter((x) => x.week === week)) {
+        if (seen.has(p.team)) continue;
+        seen.add(p.team); seen.add(p.opp);
+        out.push({ week, team_a: p.team, rec_a: rec[p.team], proj_a: p.proj, score_a: pts[p.team] ?? 0, score_b: pts[p.opp] ?? 0, proj_b: p.opp_proj, rec_b: rec[p.opp], team_b: p.opp });
+      }
+      return out;
+    }
+  });
+
+  dash.calc('last_odds', {
+    title: 'Last place odds',
+    description: 'Each team\'s chance of finishing last in the regular season, from 10,000 simulated seasons over the remaining schedule.',
+    inputs: ['games', 'projections', 'schedule'],
+    fn: (games, projections, schedule) => {
+    const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
+    const teams = [...new Set(games.map((g) => g.team))];
+    const last = Math.max(...games.map((g) => g.week));
+    const avg = {}, wins = {}, pf = {}, sds = [];
+    for (const t of teams) {
+      const pts = games.filter((g) => g.team === t).map((g) => g.pts);
+      avg[t] = mean(pts); pf[t] = pts.reduce((s, x) => s + x, 0);
+      wins[t] = games.filter((g) => g.team === t && g.result === 'W').length;
+      sds.push(Math.sqrt(pts.reduce((s, x) => s + (x - avg[t]) ** 2, 0) / (pts.length - 1)));
+    }
+    const lg = mean(Object.values(avg)), sd = mean(sds);
+    const proj = new Map(projections.map((p) => [p.week + '|' + p.team, p.proj]));
+    const mu = (w, t) => { const b = 0.7 * avg[t] + 0.3 * lg; const pr = proj.get(w + '|' + t); return pr == null ? b : 0.5 * pr + 0.5 * b; };
+    const games_left = schedule.filter((s) => s.week > last && s.team < s.opp);
+    let seed = 20261028;
+    const rand = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+    const gauss = () => { let u = 0; while (u === 0) u = rand(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand()); };
+    const N = 10000, count = Object.fromEntries(teams.map((t) => [t, 0]));
+    for (let i = 0; i < N; i++) {
+      const W = { ...wins }, P = { ...pf };
+      for (const g of games_left) {
+        const a = mu(g.week, g.team) + sd * gauss(), b = mu(g.week, g.opp) + sd * gauss();
+        P[g.team] += a; P[g.opp] += b;
+        if (a > b) W[g.team]++; else W[g.opp]++;
+      }
+      let lo = teams[0];
+      for (const t of teams) if (W[t] < W[lo] || (W[t] === W[lo] && P[t] < P[lo])) lo = t;
+      count[lo]++;
+    }
+    return teams.map((team) => ({ team, last_pct: count[team] / N })).sort((a, b) => b.last_pct - a.last_pct);
+    }
+  });
+
+  dash.calc('season', {
+    title: 'Season highlights',
+    description: 'Season high and low scores, biggest blowout and league average.',
+    inputs: ['games'],
+    fn: (games) => {
+      const hi = games.reduce((a, b) => (b.pts > a.pts ? b : a));
+      const lo = games.reduce((a, b) => (b.pts < a.pts ? b : a));
+      const bo = games.filter((g) => g.result === 'W').reduce((a, b) => (b.pts - b.opp_pts > a.pts - a.opp_pts ? b : a));
+      return [{
+        last_week: Math.max(...games.map((g) => g.week)),
+        high_team: hi.team, high_pts: hi.pts, high_week: hi.week,
+        low_team: lo.team, low_pts: lo.pts, low_week: lo.week,
+        blow_winner: bo.team, blow_loser: bo.opp, blow_margin: bo.pts - bo.opp_pts, blow_week: bo.week,
+        avg_pts: games.reduce((s, g) => s + g.pts, 0) / games.length
+      }];
+    }
+  });
+</script>
+
+<script>
+  // Header sentence and tiles
+  PB.word('leader', 'standings', (r) => r[0].team);
+  PB.word('leader-w', 'standings', (r) => String(r[0].w));
+  PB.word('leader-l', 'standings', (r) => String(r[0].l));
+  PB.word('thru', 'season', (r) => String(r[0].last_week));
+  PB.word('pr-leader', 'rankings', (r) => r[0].team);
+  PB.word('cur-week', 'current', (r) => String(r[0].week));
+  PB.word('lp-team', 'last_odds', (r) => r[0].team);
+  PB.word('lp-pct', 'last_odds', (r) => d3.format('.0%')(r[0].last_pct));
+  PB.word('hi-pts', 'season', (r) => PB.f2(r[0].high_pts));
+  PB.word('hi-team', 'season', (r) => r[0].high_team);
+  PB.word('hi-week', 'season', (r) => String(r[0].high_week));
+  PB.word('lo-pts', 'season', (r) => PB.f2(r[0].low_pts));
+  PB.word('lo-team', 'season', (r) => r[0].low_team);
+  PB.word('lo-week', 'season', (r) => String(r[0].low_week));
+  PB.word('bo-margin', 'season', (r) => PB.f2(r[0].blow_margin));
+  PB.word('bo-win', 'season', (r) => r[0].blow_winner);
+  PB.word('bo-lose', 'season', (r) => r[0].blow_loser);
+  PB.word('bo-week', 'season', (r) => String(r[0].blow_week));
+  PB.word('avg', 'season', (r) => PB.f2(r[0].avg_pts));
+</script>
+
+<script>
+  // Tables
+  dash.draw('standings-body', (tb) => {
+    const rows = PB.rows(tb, 'standings'); if (!rows) return;
+    tb.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      PB.cell(tr, String(r.rank), 'num pb-dim');
+      PB.cell(tr, r.team);
+      PB.cell(tr, r.manager, 'pb-hide-sm pb-dim');
+      PB.cell(tr, String(r.w), 'num');
+      PB.cell(tr, String(r.l), 'num');
+      PB.cell(tr, PB.f2(r.pf), 'num');
+      PB.cell(tr, PB.f2(r.pa), 'num');
+      PB.cell(tr, r.streak, 'pb-hide-sm');
+      PB.cell(tr, String(r.moves), 'num pb-hide-sm');
+      return tr;
+    }));
+  });
+
+  dash.draw('current-body', (tb) => {
+    const rows = PB.rows(tb, 'current'); if (!rows) return;
+    tb.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      const started = r.score_a + r.score_b > 0;
+      const aFav = started ? r.score_a >= r.score_b : r.proj_a >= r.proj_b;
+      PB.cell(tr, r.team_a, aFav ? 'pb-fav' : '');
+      PB.cell(tr, r.rec_a, 'num pb-hide-sm pb-dim');
+      PB.cell(tr, PB.f2(r.proj_a), 'num pb-dim');
+      PB.cell(tr, PB.f2(r.score_a), 'num' + (started && aFav ? ' pb-fav' : started ? '' : ' pb-dim'));
+      PB.cell(tr, PB.f2(r.score_b), 'num' + (started && !aFav ? ' pb-fav' : started ? '' : ' pb-dim'));
+      PB.cell(tr, PB.f2(r.proj_b), 'num pb-dim');
+      PB.cell(tr, r.rec_b, 'pb-hide-sm pb-dim');
+      PB.cell(tr, r.team_b, aFav ? '' : 'pb-fav');
+      return tr;
+    }));
+  });
+
+  dash.draw('rankings-body', (tb) => {
+    const rows = PB.rows(tb, 'rankings'); if (!rows) return;
+    tb.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      PB.cell(tr, String(r.rank), 'num pb-dim');
+      PB.cell(tr, r.team, r.rank <= 3 ? 'pb-fav' : '');
+      const sc = PB.cell(tr, '', 'pb-score');
+      const bar = document.createElement('span'); bar.className = 'pb-bar';
+      const fill = document.createElement('span'); fill.className = 'pb-fill'; fill.style.width = Math.max(2, r.score) + '%'; fill.style.background = dash.colors[0];
+      bar.append(fill);
+      const val = document.createElement('span'); val.className = 'pb-val'; val.textContent = d3.format('.0f')(r.score);
+      sc.append(bar, val);
+      PB.cell(tr, r.record, 'num');
+      PB.cell(tr, PB.f2(r.recent), 'num');
+      const t = PB.cell(tr, (r.trend >= 0 ? '▲ ' : '▼ ') + d3.format('.1f')(Math.abs(r.trend)), 'num pb-hide-sm');
+      t.style.color = r.trend >= 0 ? 'var(--color-ok)' : 'var(--color-bad)';
+      PB.cell(tr, r.next == null ? '—' : PB.f2(r.next), 'num');
+      PB.cell(tr, PB.f2(r.avg), 'num pb-hide-sm pb-dim');
+      return tr;
+    }));
+  });
+
+</script>
+
+<script>
+  // Heatmap of scores: teams (power order) by week
+  dash.draw('heat', (el) => {
+    const games = PB.rows(el, 'games'); if (!games) return;
+    const p = dash.data('rankings');
+    const order = p.status === 'ok' ? p.data.map((r) => r.team) : [...new Set(games.map((g) => g.team))];
+    const weeks = [...new Set(games.map((g) => g.week))].sort((a, b) => a - b);
+    el.replaceChildren();
+    const W = Math.max(280, el.clientWidth);
+    const rowH = 28, top = 22;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('font-family', 'var(--font-anthropic-sans)');
+    // measure the widest team name
+    const meas = svg.append('text').attr('font-size', 12);
+    let labelW = 0;
+    for (const t of order) { meas.text(t); labelW = Math.max(labelW, meas.node().getComputedTextLength()); }
+    meas.remove();
+    labelW = Math.min(labelW + 10, W * 0.45);
+    const H = top + order.length * rowH;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    el.style.minHeight = H + 'px';
+    const x = d3.scaleBand(weeks, [labelW, W]).paddingInner(0.06);
+    const y = d3.scaleBand(order, [top, H]).paddingInner(0.1);
+    const ext = d3.extent(games, (g) => g.pts);
+    const op = d3.scaleLinear(ext, [0.1, 1]);
+    const showVals = x.bandwidth() >= 42;
+    const hiW = d3.rollup(games, (v) => d3.max(v, (g) => g.pts), (g) => g.week);
+    const loW = d3.rollup(games, (v) => d3.min(v, (g) => g.pts), (g) => g.week);
+    const mark = (g) => (g.pts === hiW.get(g.week) ? 'hi' : g.pts === loW.get(g.week) ? 'lo' : null);
+
+    svg.append('g').selectAll('text').data(weeks).join('text')
+      .attr('x', (w) => x(w) + x.bandwidth() / 2).attr('y', 14).attr('text-anchor', 'middle')
+      .attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text((w) => 'Wk ' + w);
+    svg.append('g').selectAll('text').data(order).join('text')
+      .attr('x', 0).attr('y', (t) => y(t) + y.bandwidth() / 2).attr('dominant-baseline', 'middle')
+      .attr('font-size', 12).attr('fill', 'var(--color-fg)')
+      .text((t) => { let s = t; return s; })
+      .each(function (t) { // trim names that don't fit
+        let s = t; while (this.getComputedTextLength() > labelW - 10 && s.length > 4) { s = s.slice(0, -1); this.textContent = s + '…'; }
+      });
+
+    const tip = document.createElement('div'); tip.className = 'pb-tip'; tip.hidden = true; el.append(tip);
+    const cells = svg.append('g').selectAll('g').data(games).join('g')
+      .attr('transform', (g) => `translate(${x(g.week)},${y(g.team)})`);
+    cells.append('rect').attr('width', x.bandwidth()).attr('height', y.bandwidth()).attr('rx', 3)
+      .attr('fill', (g) => (mark(g) === 'hi' ? 'var(--color-ok)' : mark(g) === 'lo' ? 'var(--color-bad)' : dash.colors[0]))
+      .attr('fill-opacity', (g) => (mark(g) ? 0.9 : op(g.pts)));
+    if (showVals) {
+      cells.append('text').attr('x', x.bandwidth() / 2).attr('y', y.bandwidth() / 2).attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle').attr('font-size', 11).style('font-variant-numeric', 'tabular-nums')
+        .attr('fill', (g) => (mark(g) || op(g.pts) > 0.6 ? '#fff' : 'var(--color-fg)'))
+        .attr('font-weight', (g) => (g.result === 'W' ? 600 : 400))
+        .text((g) => d3.format('.1f')(g.pts));
+    }
+    cells.on('pointerenter pointermove', function (ev, g) {
+      tip.replaceChildren();
+      const a = document.createElement('div'); a.className = 'k'; a.textContent = 'Week ' + g.week; tip.append(a);
+      const b = document.createElement('div'); b.textContent = `${g.team} ${PB.f2(g.pts)}`; tip.append(b);
+      const c = document.createElement('div'); c.textContent = `${g.result === 'W' ? 'beat' : 'lost to'} ${g.opp} ${PB.f2(g.opp_pts)}`; tip.append(c);
+      const d = document.createElement('div'); d.className = 'k'; d.textContent = 'Projected ' + PB.f2(g.proj); tip.append(d);
+      if (mark(g)) { const e = document.createElement('div'); e.textContent = mark(g) === 'hi' ? 'Top score of the week' : 'Lowest score of the week'; e.style.color = mark(g) === 'hi' ? 'var(--color-ok)' : 'var(--color-bad)'; tip.append(e); }
+      tip.hidden = false;
+      const box = el.getBoundingClientRect();
+      let lx = ev.clientX - box.left + 12, ly = ev.clientY - box.top + 12;
+      if (lx + tip.offsetWidth > box.width) lx = ev.clientX - box.left - tip.offsetWidth - 12;
+      tip.style.left = Math.max(0, lx) + 'px'; tip.style.top = ly + 'px';
+      d3.select(this).select('rect').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.5);
+    }).on('pointerleave', function () {
+      tip.hidden = true;
+      d3.select(this).select('rect').attr('stroke', 'none');
+    });
+  });
+</script>
+</div>
+</body>
+</html>
