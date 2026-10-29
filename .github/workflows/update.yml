@@ -9,6 +9,9 @@ on:
     - cron: "0 15-23 * * 0"     # Sunday 8am-4pm Denver, hourly
     - cron: "0 0-5 * * 1"       # Sunday 5pm-10pm Denver, hourly
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["scripts/**", ".github/workflows/update.yml"]
 
 permissions:
   contents: write

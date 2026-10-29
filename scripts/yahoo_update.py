@@ -84,7 +84,15 @@ def api(token, path):
         with urllib.request.urlopen(req, timeout=30) as r:
             return strip_ns(ET.fromstring(r.read()))
     except urllib.error.HTTPError as e:
-        raise RuntimeError(f"Yahoo API {path} failed ({e.code}): {e.read().decode(errors='replace')[:200]}")
+        body = e.read().decode(errors="replace")
+        detail = body
+        try:
+            root = strip_ns(ET.fromstring(body))
+            detail = " ".join(x.text.strip() for x in root.iter() if x.text and x.text.strip()) or body
+        except ET.ParseError:
+            pass
+        www = e.headers.get("WWW-Authenticate", "")
+        raise RuntimeError(f"Yahoo API {path} failed ({e.code}): {detail[:400]}" + (f" [{www[:200]}]" if www else ""))
 
 
 def txt(el, path, default=""):
