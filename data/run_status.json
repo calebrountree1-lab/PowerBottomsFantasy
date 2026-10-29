@@ -1,5 +1,5 @@
 {
- "at": "2026-10-29T17:02:27Z",
+ "at": "2026-10-29T17:03:52Z",
  "ok": false,
- "message": "Yahoo API game/nfl failed (403): <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<error xml:lang=\"en-us\" yahoo:uri=\"http://fantasysports.yahooapis.com/fantasy/v2/game/nfl\" xmlns:yahoo=\"http://www.yahooapis.com/v1/base.rng\" xmlns=\"http://www.y"
+ "message": "Yahoo API game/nfl failed (403): This application is not authorized to perform this action."
 }
