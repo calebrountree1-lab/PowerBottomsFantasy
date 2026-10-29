@@ -1,5 +1,5 @@
 {
- "at": "2026-10-29T17:03:52Z",
+ "at": "2026-10-29T17:09:16Z",
  "ok": false,
- "message": "Yahoo API game/nfl failed (403): This application is not authorized to perform this action."
+ "message": "Yahoo API game/nfl failed (403): This application is not authorized to perform this action. | access granted by Yahoo: (Yahoo did not say)"
 }
