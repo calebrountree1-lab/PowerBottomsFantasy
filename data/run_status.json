@@ -1,5 +1,5 @@
 {
- "at": "2026-10-29T16:36:21Z",
+ "at": "2026-10-29T17:02:27Z",
  "ok": false,
- "message": "YAHOO_CLIENT_ID / YAHOO_CLIENT_SECRET secrets are missing"
+ "message": "Yahoo API game/nfl failed (403): <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<error xml:lang=\"en-us\" yahoo:uri=\"http://fantasysports.yahooapis.com/fantasy/v2/game/nfl\" xmlns:yahoo=\"http://www.yahooapis.com/v1/base.rng\" xmlns=\"http://www.y"
 }
