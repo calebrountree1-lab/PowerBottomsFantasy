@@ -204,7 +204,11 @@ def main():
             if tok.get("refresh_token") and tok["refresh_token"] != refresh:
                 save_refresh_token(tok["refresh_token"])
             access = tok["access_token"]
-        d = pull(access)
+        granted = tok.get("scope") or "(Yahoo did not say)"
+        try:
+            d = pull(access)
+        except RuntimeError as e:
+            raise RuntimeError(f"{e} | access granted by Yahoo: {granted}")
         check(d)
         for name in ("standings", "games", "projections", "live", "schedule"):
             (DATA / f"{name}.json").write_text(json.dumps(d[name], ensure_ascii=False))
