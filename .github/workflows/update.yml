@@ -1,0 +1,39 @@
+name: Update league data
+
+on:
+  schedule:
+    # Times are UTC. Denver is UTC-7 from Nov 1 (MST).
+    - cron: "50 3,15 * * *"     # daily, about 8:50pm and 8:50am Denver
+    - cron: "0 1,5 * * 5"       # Thursday 6pm and 10pm Denver
+    - cron: "0 5 * * 2"         # Monday 10pm Denver
+    - cron: "0 15-23 * * 0"     # Sunday 8am-4pm Denver, hourly
+    - cron: "0 0-5 * * 1"       # Sunday 5pm-10pm Denver, hourly
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: league-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull from Yahoo
+        id: pull
+        env:
+          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+        run: python scripts/yahoo_update.py update || echo "failed=1" >> "$GITHUB_OUTPUT"
+      - name: Save changes
+        run: |
+          git config user.name "Power Bottom Dashboard"
+          git config user.email "actions@users.noreply.github.com"
+          git add data; [ -d .yahoo ] && git add .yahoo
+          git diff --cached --quiet || (git commit -q -m "Update league data" && git push -q)
+      - name: Report failure
+        if: steps.pull.outputs.failed == '1'
+        run: cat data/run_status.json && exit 1

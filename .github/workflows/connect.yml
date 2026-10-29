@@ -1,0 +1,44 @@
+name: Connect Yahoo
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "The code Yahoo showed after you clicked Agree (it works once and expires in a few minutes)"
+        required: true
+      redirect_uri:
+        description: "Leave as oob unless your Yahoo app uses https://localhost"
+        required: true
+        default: "oob"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: league-data
+  cancel-in-progress: false
+
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hide the code in logs
+        run: echo "::add-mask::${{ inputs.code }}"
+      - uses: actions/checkout@v4
+      - name: Link Yahoo and pull the first update
+        id: pull
+        env:
+          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+          YAHOO_REDIRECT_URI: ${{ inputs.redirect_uri }}
+          AUTH_CODE: ${{ inputs.code }}
+        run: python scripts/yahoo_update.py connect "$AUTH_CODE" || echo "failed=1" >> "$GITHUB_OUTPUT"
+      - name: Save changes
+        run: |
+          git config user.name "Power Bottom Dashboard"
+          git config user.email "actions@users.noreply.github.com"
+          git add data; [ -d .yahoo ] && git add .yahoo
+          git diff --cached --quiet || (git commit -q -m "Connect Yahoo and update league data" && git push -q)
+      - name: Report failure
+        if: steps.pull.outputs.failed == '1'
+        run: cat data/run_status.json && exit 1
